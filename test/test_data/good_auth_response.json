@@ -1,0 +1,50 @@
+[
+    {
+        "id": 12345,
+        "url": "https://api.github.com/authorizations/12345",
+        "app": {
+            "name": "SampleAppApi",
+            "url": "http://sampleapp.org/"
+        },
+        "token": "wrongtoken123",
+        "note": null,
+        "note_url": null,
+        "created_at": "2012-11-08T21:05:49Z",
+        "updated_at": "2012-11-08T21:05:49Z",
+        "scopes": [
+
+        ]
+    },
+    {
+        "id": 801663,
+        "url": "https://api.github.com/authorizations/801663",
+        "app": {
+            "name": "token for accessing our private repo (API)",
+            "url": "http://developer.github.com/v3/oauth/#oauth-authorizations-api"
+        },
+        "token": "testToken123",
+        "note": "token for accessing our private repo",
+        "note_url": null,
+        "created_at": "2012-11-10T19:18:35Z",
+        "updated_at": "2012-11-10T19:18:35Z",
+        "scopes": [
+            "repo"
+        ]
+    },
+    {
+        "id": 999999,
+        "url": "https://api.github.com/authorizations/999999",
+        "app": {
+            "name": "Jenkins",
+            "url": "http://mylocaljenkins.com:8080"
+        },
+        "token": "wrongtoken123",
+        "note": null,
+        "note_url": null,
+        "created_at": "2012-12-10T22:14:42Z",
+        "updated_at": "2012-12-10T22:14:42Z",
+        "scopes": [
+
+        ]
+    }
+]

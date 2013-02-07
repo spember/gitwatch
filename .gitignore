@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 *.py[cod]
 
 # C extensions
@@ -33,3 +34,10 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+.idea
+
+
+#the name of the token file
+.github_token
+
