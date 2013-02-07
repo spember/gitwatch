@@ -193,16 +193,17 @@ class GitWatch(object):
 
 
     def setup(self):
-        if not self.token:
-            username, password = obtain_credentials(self.username)
+        if self.token == "":
+            username, password = self.obtain_credentials(self.username)
             if username != self.username:
                 self.info_manager.save_username(username)
+                self.username = username
             self.token = self.get_auth_token(self.username, password)
             self.info_manager.save_token(self.token)
-        print "Done"
+        print "Setup Complete. Welcome {0}".format(self.username)
 
 
-    def obtain_credentials(username=None):
+    def obtain_credentials(self, username=None):
         """
         Simple prompt for obtain a github username and password
         """
@@ -219,15 +220,15 @@ class GitWatch(object):
         """
         #token for accessing our private repo (API)
         token = None
-        try:
-            data = json.load(urllib2.urlopen(make_http_auth_request(self.github_api_url_root + "authorizations", username, password)))
-            for d in data:
-                if d.has_key("app") and d["app"].get("name", "") == "token for accessing our private repo (API)":
-                    token = d["token"]
-        except urllib2.HTTPError:
-            #potential 404
-            print "Connection Error: {0}".format(traceback.format_exc(0))
+        data = self.open_http_json_request(self.build_http_auth_request(self.github_api_url_root + "authorizations", username, password))
+        for d in data:
+            if d.has_key("app") and d["app"].get("name", "") == "token for accessing our private repo (API)":
+                token = d["token"]
         return token
+
+    def get_subscriptions(self):
+        data = self.open_http_json_request(self.build_subscription_url())
+        return data
 
     def build_subscription_url(self):
         url = None
@@ -235,6 +236,25 @@ class GitWatch(object):
             url = "{0}users/{1}/subscriptions?access_token={2}".format(self.github_api_url_root,
                     self.username, self.token)
         return url
+
+    def build_http_auth_request(self, url, username, password):
+        request = urllib2.Request(url)
+        base64str = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
+        request.add_header("Authorization", "Basic %s" % base64str)
+        return request
+
+    def open_http_json_request(self, url):
+        data = []
+        try:
+            data = json.load(urllib2.urlopen(url))
+        except urllib2.HTTPError as e:
+            print "Unable to connect to {0}: {1}".format(url.get_full_url(), traceback.format_exc(0))
+        return data
+
+    def main(self):
+        self.setup()
+
+
 
 
 def main():
@@ -246,7 +266,7 @@ def main():
         -check if current token is valid
         -otherwise login
     """
-
+    """
     manager = InformationManager()
     token = manager.load_token()
     if token:
@@ -266,58 +286,12 @@ def main():
     print "Here are your subscriptions:"
     for x in xrange(len(data)):
         print "{2}, {0}, '{1}'".format(data[x]['name'], data[x]['description'], x)
-
-def obtain_credentials(username=None):
     """
-    Simple prompt for obtain a github username and password
-    """
-    if username:
-        print "Using stored username {0}".format(username)
-    else:
-        username = raw_input("GitHub Username: ")
-    password = getpass.getpass(prompt="Password: ")
-    return (username, password)
 
-def pretty_print(json_data):
-    print json.dumps(json_data, sort_keys=True, indent=4, separators=(",", ":"))
-
-def get_auth_token(username, password):
-    """
-    Given a simple username and password, queries GitHub, looking for the username and password
-    """
-    #token for accessing our private repo (API)
-    token = None
-
-    try:
-        data = json.load(urllib2.urlopen(make_http_auth_request("https://api.github.com/authorizations", username, password)))
-        for d in data:
-            if d["app"]["name"] == "token for accessing our private repo (API)":
-                token = d["token"]
-    except urllib2.HTTPError:
-        #potential 404
-        print "Connection Error: {0}".format(traceback.format_exc(0))
-    return token
-
-
-def make_http_auth_request(url, username, password):
-    request = urllib2.Request(url)
-    base64str = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
-    request.add_header("Authorization", "Basic %s" % base64str)
-    return request
-
-def get_subscriptions(token):
-    data = []
-    try:
-        request = urllib2.Request("https://api.github.com/users/spember/subscriptions?access_token=" + str(token))
-        data =json.load(urllib2.urlopen(request))
-    except urllib2.HTTPError as e:
-        print "Unable to connect: "
-    return data
-
-
-
+#def pretty_print(json_data):
+#    print json.dumps(json_data, sort_keys=True, indent=4, separators=(",", ":"))
 
 
 if __name__ == '__main__':
-    main()
+    GitWatch().main()
 

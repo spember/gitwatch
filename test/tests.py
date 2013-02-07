@@ -65,6 +65,13 @@ class AccessTokenTestCase(TestCase):
         self.manager._save("unknown", "Please Save!")
         self.assertEqual(self.manager._load_key("unknown"), None, "Save should not occur for unknown key")
 
+    def test_save_and_load(self):
+        self.assertEqual("", self.manager.load_username())
+        self.manager.save_username("tester")
+        self.assertEqual("tester", self.manager.load_username(), "Reloading instantly should return the name")
+        self.manager = InformationManager(".test-file")
+        self.assertEqual("tester", self.manager.load_username(), "Reloading instantly should return the name")
+
 
 class AuthTokenHTTPHandler(urllib2.BaseHandler):
     def __init__(self):
