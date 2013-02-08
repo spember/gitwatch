@@ -7,6 +7,7 @@ import base64
 import getpass
 import pickle
 import traceback
+import string
 
 
 """
@@ -178,10 +179,12 @@ class InformationManager(object):
 class GitWatch(object):
 
     github_api_url_root = "https://api.github.com/"
+    subscriptions = []
 
     def __init__(self, alternate_manager=None):
         self.token = None
         self.username = None
+        self.subscriptions = []
 
         if alternate_manager:
             self.info_manager = alternate_manager
@@ -226,6 +229,10 @@ class GitWatch(object):
                 token = d["token"]
         return token
 
+    def load_subscriptions(self, data):
+        for d in data:
+            self.subscriptions.append(GithubRepo(d))
+
     def get_subscriptions(self):
         data = self.open_http_json_request(self.build_subscription_url())
         return data
@@ -253,6 +260,17 @@ class GitWatch(object):
 
     def main(self):
         self.setup()
+        self.load_subscriptions(self.get_subscriptions())
+        running = True
+        while running:
+            print "Your current subscriptions:\n"
+            for pos in xrange(len(self.subscriptions)):
+                print "\t{0}: {1}".format(pos, self.subscriptions[pos])
+            choice = string.lower(raw_input("Enter number of repo to unsubscribe, or (q)uit to quit"))
+            if choice == "q" or choice == "quit":
+                running = False
+
+
 
 
 
