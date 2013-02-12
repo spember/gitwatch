@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import optparse
 import os
+import inspect
 import json
 import urllib2
 import base64
@@ -111,22 +112,23 @@ class GithubRepo(object):
             self.private = json["private"]
             self.id = json["id"]
             self.description = json["description"]
+            self.owner = json["owner"]["login"]
         except KeyError as ke:
             self.valid = False
         return self.valid
 
     def __str__(self):
-        return "{0}{1}".format(self.name, "*" if self.private else "")
+        return "{0}{1} ({2})".format("*" if self.private else "", self.name, self.owner)
 
 class InformationManager(object):
     TOKEN_KEY = "token"
     USERNAME_KEY = "username"
 
-    def __init__(self, token_path=".github_token"):
-        self.pickled_token_path=token_path
+    def __init__(self, token_name=".github_token"):
+        self.pickled_token_file_name=token_name
 
     def file_path(self):
-        return os.getcwd() +"/" +self.pickled_token_path
+        return os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) +"/" +self.pickled_token_file_name
 
     def _dump_data(self, data):
         f = open(self.file_path(), "w")
@@ -180,6 +182,7 @@ class GitWatch(object):
 
     github_api_url_root = "https://api.github.com/"
     subscriptions = []
+    subscription_page_size = 30
 
     def __init__(self, alternate_manager=None):
         self.token = None
@@ -233,15 +236,43 @@ class GitWatch(object):
         for d in data:
             self.subscriptions.append(GithubRepo(d))
 
-    def get_subscriptions(self):
-        data = self.open_http_json_request(self.build_subscription_url())
-        return data
+    def get_subscriptions(self, page=1):
+        response_data = self.open_http_json_request(self.build_subscription_url(page))
+        if len(response_data) >= self.subscription_page_size:
+            page += 1
+            print "Fetching page {0}".format(page)
+            return response_data + self.get_subscriptions(page)
+        else:
+            return response_data
 
-    def build_subscription_url(self):
+
+    def build_subscription_url(self, page):
         url = None
         if self.username and self.token:
-            url = "{0}users/{1}/subscriptions?access_token={2}".format(self.github_api_url_root,
-                    self.username, self.token)
+            url = "{0}users/{1}/subscriptions?access_token={2}&page={3}&per_page={4}".format(self.github_api_url_root,
+                    self.username, self.token, page, self.subscription_page_size)
+        return url
+
+
+    def unwatch_repos(self, repo_numbers):
+        repo_numbers =  map(int, repo_numbers.split(" "))
+        to_remove = []
+        for num in repo_numbers:
+            to_remove.append(self.subscriptions[num - 1])
+        for repo in to_remove:
+            print "Unsubscribing from: {0}".format(repo.name)
+            result = self.open_http_delete_request(self.build_subscription_delete_url(repo))
+            print "Received a " +str(result.code)
+            if int(result.code) == 204:
+                self.subscriptions.remove(repo)
+            else:
+                print "Something went wrong"
+
+    def build_subscription_delete_url(self, subscription):
+        url = None
+        if self.token:
+            url = "{0}repos/{1}/{2}/subscription?access_token={3}".format(self.github_api_url_root,
+                    subscription.owner, subscription.name, self.token)
         return url
 
     def build_http_auth_request(self, url, username, password):
@@ -255,56 +286,28 @@ class GitWatch(object):
         try:
             data = json.load(urllib2.urlopen(url))
         except urllib2.HTTPError as e:
-            print "Unable to connect to {0}: {1}".format(url.get_full_url(), traceback.format_exc(0))
+            print "Unable to connect to {0}: {1}".format(url, traceback.format_exc(0))
         return data
+
+    def open_http_delete_request(self, url):
+        opener = urllib2.build_opener(urllib2.HTTPHandler)
+        request = urllib2.Request(url)
+        request.get_method = lambda: 'DELETE'
+        return opener.open(request)
 
     def main(self):
         self.setup()
         self.load_subscriptions(self.get_subscriptions())
         running = True
         while running:
-            print "Your current subscriptions:\n"
+            print "Your current subscriptions (A '*' denotes a private repo):\n"
             for pos in xrange(len(self.subscriptions)):
-                print "\t{0}: {1}".format(pos, self.subscriptions[pos])
-            choice = string.lower(raw_input("Enter number of repo to unsubscribe, or (q)uit to quit"))
+                print "\t{0}: {1}: {2}".format(pos+1, self.subscriptions[pos], self.subscriptions[pos].description)
+            choice = string.lower(raw_input("Enter number of repo to unsubscribe, or (q)uit to quit: "))
             if choice == "q" or choice == "quit":
                 running = False
-
-
-
-
-
-
-def main():
-    #https://api.github.com/users/:user/subscriptions
-    #908ee2ce2ce2e93a1d19254bcb2872db7d64ffe1
-
-    """
-        -check authtoken for existing token
-        -check if current token is valid
-        -otherwise login
-    """
-    """
-    manager = InformationManager()
-    token = manager.load_token()
-    if token:
-        print "Using token of {0}, no need to re-login".format(token)
-    else:
-        username, password = obtain_credentials()
-        print "Attempting login for user " +str(username)
-        token = get_auth_token(username, password)
-        if (token == None):
-            print "No token found!"
-            return False
-        else:
-            print "Token: " +str(token)
-            manager.save_token(token)
-    print "Looking for subscriptions:"
-    data = get_subscriptions(token)
-    print "Here are your subscriptions:"
-    for x in xrange(len(data)):
-        print "{2}, {0}, '{1}'".format(data[x]['name'], data[x]['description'], x)
-    """
+            else:
+                self.unwatch_repos(choice)
 
 #def pretty_print(json_data):
 #    print json.dumps(json_data, sort_keys=True, indent=4, separators=(",", ":"))

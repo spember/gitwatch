@@ -14,7 +14,10 @@ class GithubRepoTextCase(TestCase):
             "name": "test-repo",
             "description": "This is a Test",
             "full_name": "tester/test_repo",
-            "private": False
+            "private": False,
+            "owner": {
+                "login": "tester"
+            }
         }
 
     def test_invalid_data(self):
@@ -25,9 +28,9 @@ class GithubRepoTextCase(TestCase):
 
     def test_print(self):
         repo = GithubRepo(self.get_valid_data())
-        self.assertEqual(str(repo), "test-repo")
+        self.assertEqual(str(repo), "test-repo (tester)")
         repo.private = True
-        self.assertEqual(str(repo), "test-repo*")
+        self.assertEqual(str(repo), "*test-repo (tester)")
 
 def get_test_info_manager():
     manager = InformationManager(".test-file")
@@ -160,6 +163,7 @@ class GitWatchTestCase(TestCase):
         git_watch.username = "tester"
 
         self.assertEqual("https://api.github.com/users/tester/subscriptions?access_token=testToken123", git_watch.build_subscription_url())
+
 
 
     def test_get_current_subscriptions(self):
