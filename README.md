@@ -7,6 +7,9 @@ unwatch from those I wasn't currently active in, so I figured I'd write a small 
 This small command line utility will allow a user to view the full list of repos that they're watching, and unsubscribe
 from them at will.
 
+### Installation
+
+Download gitwatch and place it on your path. Mark it as executable
 
 ### Usage
 
@@ -18,8 +21,7 @@ labeled with a number. After listing the repos, the user will be prompted to eit
 entering one or many numerical values corresponding to the numerical labels for each repo. Those repos selected will be
 unsubscribed from, at which point the list will be redisplayed (although sans those repos chosen in the previous step).
 
-### Installation
-
 
 ### Requirements
 
+Python 2.x (although I've only tested it on 2.7 on a Mac OS X Mountain Lion)

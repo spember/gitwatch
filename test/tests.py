@@ -165,7 +165,6 @@ class GitWatchTestCase(TestCase):
         self.assertEqual("https://api.github.com/users/tester/subscriptions?access_token=testToken123", git_watch.build_subscription_url())
 
 
-
     def test_get_current_subscriptions(self):
         self.assertEqual(1,1)
 
