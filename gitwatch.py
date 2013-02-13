@@ -181,16 +181,22 @@ class GitWatch(object):
 
 
     def unwatch_repos(self, repo_numbers):
-        repo_numbers =  map(int, repo_numbers.split(" "))
+        try:
+            repo_numbers =  map(int, repo_numbers.split(" "))
+        except ValueError as v:
+            print "Numbers only please. (e.g. 1 40 29 5)"
+            raw_input("Press Enter to continue...")
+            repo_numbers = []
         to_remove = []
         for num in repo_numbers:
             to_remove.append(self.subscriptions[num - 1])
         for repo in to_remove:
-            print "Unsubscribing from: {0}".format(repo.name)
+            print("Unsubscribing from: {0}...".format(repo.name)),
             result = self.open_http_delete_request(self.build_subscription_delete_url(repo))
-            print "Received a " +str(result.code)
+
             if int(result.code) == 204:
                 self.subscriptions.remove(repo)
+                print "Success!"
             else:
                 print "Something went wrong"
 
@@ -234,7 +240,7 @@ class GitWatch(object):
                 print "Your current subscriptions (A '*' denotes a private repo):\n"
                 for pos in xrange(len(self.subscriptions)):
                     print "\t{0}: {1}: {2}".format(pos+1, self.subscriptions[pos], self.subscriptions[pos].description)
-                choice = string.lower(raw_input("Enter number of repo to unsubscribe, or (q)uit to quit: "))
+                choice = string.lower(raw_input("Enter number(s) of repo(s) to unsubscribe, or (q)uit to quit: "))
                 if choice == "q" or choice == "quit":
                     running = False
                 else:
