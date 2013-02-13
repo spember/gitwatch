@@ -4,7 +4,7 @@ sys.path.append("../")
 import unittest
 from unittest import TestCase
 import urllib2
-from git_watch import *
+from gitwatch import *
 
 class GithubRepoTextCase(TestCase):
 
@@ -152,17 +152,23 @@ class GitWatchTestCase(TestCase):
 
         git_watch = GitWatch(self.manager)
 
-        self.assertIsNone(git_watch.build_subscription_url(), "Should return None if missing parameters ")
+        self.assertIsNone(git_watch.build_subscription_url(1), "Should return None if missing parameters ")
         git_watch.username = "spember"
-        self.assertIsNone(git_watch.build_subscription_url(), "Should return None if missing parameters ")
+        self.assertIsNone(git_watch.build_subscription_url(1), "Should return None if missing parameters ")
         git_watch.username = ""
         git_watch.token = "testToken123"
-        self.assertIsNone(git_watch.build_subscription_url(), "Should return None if missing parameters ")
+        self.assertIsNone(git_watch.build_subscription_url(1), "Should return None if missing parameters ")
 
         git_watch.token = "testToken123"
         git_watch.username = "tester"
 
-        self.assertEqual("https://api.github.com/users/tester/subscriptions?access_token=testToken123", git_watch.build_subscription_url())
+        #now, test for real
+        page = 1
+        self.assertEqual("https://api.github.com/users/tester/subscriptions?access_token=testToken123&page={0}&per_page={1}".format(page, git_watch.subscription_page_size),
+                         git_watch.build_subscription_url(page))
+        git_watch.subscription_page_size=100
+        self.assertEqual("https://api.github.com/users/tester/subscriptions?access_token=testToken123&page={0}&per_page={1}".format(page, git_watch.subscription_page_size),
+                         git_watch.build_subscription_url(page))
 
 
     def test_get_current_subscriptions(self):

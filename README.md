@@ -9,7 +9,8 @@ from them at will.
 
 ### Installation
 
-Download gitwatch and place it on your path. Mark it as executable
+Download gitwatch.py and place it on your path. Mark it as executable. I'd also suggest renaming it to be simply 'gitwatch'
+or 'gw'. It's marked as a .py file so that the tests will run.
 
 ### Usage
 

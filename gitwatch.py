@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import optparse
 import os
+import sys
 import inspect
 import json
 import urllib2
@@ -9,91 +10,10 @@ import getpass
 import pickle
 import traceback
 import string
+import argparse
 
-
-"""
-{
-        "archive_url":"https://api.github.com/repos/cantinac/matchMedia.js/{archive_format}{/ref}",
-        "assignees_url":"https://api.github.com/repos/cantinac/matchMedia.js/assignees{/user}",
-        "blobs_url":"https://api.github.com/repos/cantinac/matchMedia.js/git/blobs{/sha}",
-        "branches_url":"https://api.github.com/repos/cantinac/matchMedia.js/branches{/branch}",
-        "clone_url":"https://github.com/cantinac/matchMedia.js.git",
-        "collaborators_url":"https://api.github.com/repos/cantinac/matchMedia.js/collaborators{/collaborator}",
-        "comments_url":"https://api.github.com/repos/cantinac/matchMedia.js/comments{/number}",
-        "commits_url":"https://api.github.com/repos/cantinac/matchMedia.js/commits{/sha}",
-        "compare_url":"https://api.github.com/repos/cantinac/matchMedia.js/compare/{base}...{head}",
-        "contents_url":"https://api.github.com/repos/cantinac/matchMedia.js/contents/{+path}",
-        "contributors_url":"https://api.github.com/repos/cantinac/matchMedia.js/contributors",
-        "created_at":"2013-01-16T16:46:33Z",
-        "description":"matchMedia polyfill for testing media queries in JS",
-        "downloads_url":"https://api.github.com/repos/cantinac/matchMedia.js/downloads",
-        "events_url":"https://api.github.com/repos/cantinac/matchMedia.js/events",
-        "fork":true,
-        "forks":0,
-        "forks_count":0,
-        "forks_url":"https://api.github.com/repos/cantinac/matchMedia.js/forks",
-        "full_name":"cantinac/matchMedia.js",
-        "git_commits_url":"https://api.github.com/repos/cantinac/matchMedia.js/git/commits{/sha}",
-        "git_refs_url":"https://api.github.com/repos/cantinac/matchMedia.js/git/refs{/sha}",
-        "git_tags_url":"https://api.github.com/repos/cantinac/matchMedia.js/git/tags{/sha}",
-        "git_url":"git://github.com/cantinac/matchMedia.js.git",
-        "has_downloads":true,
-        "has_issues":false,
-        "has_wiki":true,
-        "homepage":"",
-        "hooks_url":"https://api.github.com/repos/cantinac/matchMedia.js/hooks",
-        "html_url":"https://github.com/cantinac/matchMedia.js",
-        "id":7649549,
-        "issue_comment_url":"https://api.github.com/repos/cantinac/matchMedia.js/issues/comments/{number}",
-        "issue_events_url":"https://api.github.com/repos/cantinac/matchMedia.js/issues/events{/number}",
-        "issues_url":"https://api.github.com/repos/cantinac/matchMedia.js/issues{/number}",
-        "keys_url":"https://api.github.com/repos/cantinac/matchMedia.js/keys{/key_id}",
-        "labels_url":"https://api.github.com/repos/cantinac/matchMedia.js/labels{/name}",
-        "language":"JavaScript",
-        "languages_url":"https://api.github.com/repos/cantinac/matchMedia.js/languages",
-        "merges_url":"https://api.github.com/repos/cantinac/matchMedia.js/merges",
-        "milestones_url":"https://api.github.com/repos/cantinac/matchMedia.js/milestones{/number}",
-        "mirror_url":null,
-        "name":"matchMedia.js",
-        "notifications_url":"https://api.github.com/repos/cantinac/matchMedia.js/notifications{?since,all,participating}",
-        "open_issues":0,
-        "open_issues_count":0,
-        "owner":{
-            "avatar_url":"https://secure.gravatar.com/avatar/adfc1989e9ddae0da22ee68335c904f8?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-org-420.png",
-            "events_url":"https://api.github.com/users/cantinac/events{/privacy}",
-            "followers_url":"https://api.github.com/users/cantinac/followers",
-            "following_url":"https://api.github.com/users/cantinac/following",
-            "gists_url":"https://api.github.com/users/cantinac/gists{/gist_id}",
-            "gravatar_id":"adfc1989e9ddae0da22ee68335c904f8",
-            "id":259899,
-            "login":"cantinac",
-            "organizations_url":"https://api.github.com/users/cantinac/orgs",
-            "received_events_url":"https://api.github.com/users/cantinac/received_events",
-            "repos_url":"https://api.github.com/users/cantinac/repos",
-            "starred_url":"https://api.github.com/users/cantinac/starred{/owner}{/repo}",
-            "subscriptions_url":"https://api.github.com/users/cantinac/subscriptions",
-            "type":"Organization",
-            "url":"https://api.github.com/users/cantinac"
-        },
-        "private":false,
-        "pulls_url":"https://api.github.com/repos/cantinac/matchMedia.js/pulls{/number}",
-        "pushed_at":"2012-07-27T15:55:36Z",
-        "size":136,
-        "ssh_url":"git@github.com:cantinac/matchMedia.js.git",
-        "stargazers_url":"https://api.github.com/repos/cantinac/matchMedia.js/stargazers",
-        "statuses_url":"https://api.github.com/repos/cantinac/matchMedia.js/statuses/{sha}",
-        "subscribers_url":"https://api.github.com/repos/cantinac/matchMedia.js/subscribers",
-        "subscription_url":"https://api.github.com/repos/cantinac/matchMedia.js/subscription",
-        "svn_url":"https://github.com/cantinac/matchMedia.js",
-        "tags_url":"https://api.github.com/repos/cantinac/matchMedia.js/tags{/tag}",
-        "teams_url":"https://api.github.com/repos/cantinac/matchMedia.js/teams",
-        "trees_url":"https://api.github.com/repos/cantinac/matchMedia.js/git/trees{/sha}",
-        "updated_at":"2013-01-16T16:47:19Z",
-        "url":"https://api.github.com/repos/cantinac/matchMedia.js",
-        "watchers":0,
-        "watchers_count":0
-    }
-"""
+_version = 0.1
+_name = "gitwatch"
 
 class GithubRepo(object):
     """
@@ -121,6 +41,10 @@ class GithubRepo(object):
         return "{0}{1} ({2})".format("*" if self.private else "", self.name, self.owner)
 
 class InformationManager(object):
+    """
+    Wrapper around a dictionary that is pickled into the same folder as this script. Contains methods for storing and
+    retrieving the current user name and auth token.
+    """
     TOKEN_KEY = "token"
     USERNAME_KEY = "username"
 
@@ -197,6 +121,8 @@ class GitWatch(object):
         self.token = self.info_manager.load_token()
         self.username = self.info_manager.load_username()
 
+    def clear(self):
+        self.info_manager.remove()
 
     def setup(self):
         if self.token == "":
@@ -205,9 +131,9 @@ class GitWatch(object):
                 self.info_manager.save_username(username)
                 self.username = username
             self.token = self.get_auth_token(self.username, password)
+        if self.token:
             self.info_manager.save_token(self.token)
-        print "Setup Complete. Welcome {0}".format(self.username)
-
+            print "Setup Complete. Welcome {0}".format(self.username)
 
     def obtain_credentials(self, username=None):
         """
@@ -287,6 +213,10 @@ class GitWatch(object):
             data = json.load(urllib2.urlopen(url))
         except urllib2.HTTPError as e:
             print "Unable to connect to {0}: {1}".format(url, traceback.format_exc(0))
+        except urllib2.URLError:
+            print "Unknown URL '{0}'. Please test your internet connection and try again.".format(
+                    url.get_full_url() if isinstance(url, urllib2.Request) else url
+                )
         return data
 
     def open_http_delete_request(self, url):
@@ -297,22 +227,36 @@ class GitWatch(object):
 
     def main(self):
         self.setup()
-        self.load_subscriptions(self.get_subscriptions())
-        running = True
-        while running:
-            print "Your current subscriptions (A '*' denotes a private repo):\n"
-            for pos in xrange(len(self.subscriptions)):
-                print "\t{0}: {1}: {2}".format(pos+1, self.subscriptions[pos], self.subscriptions[pos].description)
-            choice = string.lower(raw_input("Enter number of repo to unsubscribe, or (q)uit to quit: "))
-            if choice == "q" or choice == "quit":
-                running = False
-            else:
-                self.unwatch_repos(choice)
+        if self.token:
+            self.load_subscriptions(self.get_subscriptions())
+            running = True
+            while running:
+                print "Your current subscriptions (A '*' denotes a private repo):\n"
+                for pos in xrange(len(self.subscriptions)):
+                    print "\t{0}: {1}: {2}".format(pos+1, self.subscriptions[pos], self.subscriptions[pos].description)
+                choice = string.lower(raw_input("Enter number of repo to unsubscribe, or (q)uit to quit: "))
+                if choice == "q" or choice == "quit":
+                    running = False
+                else:
+                    self.unwatch_repos(choice)
 
 #def pretty_print(json_data):
 #    print json.dumps(json_data, sort_keys=True, indent=4, separators=(",", ":"))
 
+parser = argparse.ArgumentParser(description='Allows you to view and unwatch your subscribed Github repositories.')
+parser.add_argument('-v', '--version', action='version', version="{0} v{1}".format(_name, _version))
+parser.add_argument('-c', '--clear', action="store_const", const="clear", help="Deletes the cached username and auth token. Will require you to re-enter your username and password.")
+
 
 if __name__ == '__main__':
-    GitWatch().main()
+    gw = GitWatch()
+    args = parser.parse_args()
+    if args.clear:
+        print("Removing auth token cache..."),
+        gw.clear()
+        gw = GitWatch()
+        print("Done!")
+    gw.main()
+
+
 
