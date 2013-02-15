@@ -122,7 +122,9 @@ class GitWatch(object):
         self.username = self.info_manager.load_username()
 
     def clear(self):
+        print("Removing auth token cache..."),
         self.info_manager.remove()
+        print("Done!")
 
     def setup(self):
         if self.token == "":
@@ -258,10 +260,8 @@ if __name__ == '__main__':
     gw = GitWatch()
     args = parser.parse_args()
     if args.clear:
-        print("Removing auth token cache..."),
         gw.clear()
         gw = GitWatch()
-        print("Done!")
     gw.main()
 
 

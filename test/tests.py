@@ -97,12 +97,13 @@ class SubscriptionHTTPHandler(urllib2.BaseHandler):
         self.handler_order = 100
 
     def http_open(self, req):
-        if req.get_full_url() == "blah":
-            response_file = "test_data/bad_subscription_response.json"
-            resp = urllib2.addinfourl(open(response_file, "r"), "mock message", req.get_full_url())
+        if req.get_full_url().startswith("https://api.github.com/users/tester/subscriptions"):
+            response_file = "test_data/good_subscription_response.json"
+            resp = urllib2.addinfourl(open(response_file, "r"), "mock", req.get_full_url())
             resp.code = 200
             resp.msg = "OK"
             return resp
+    https_open = http_open
 
 
 auth_http_opener = urllib2.build_opener(AuthTokenHTTPHandler)
@@ -172,7 +173,13 @@ class GitWatchTestCase(TestCase):
 
 
     def test_get_current_subscriptions(self):
-        self.assertEqual(1,1)
+        git_watch = GitWatch(self.manager)
+        urllib2.install_opener(subscription_http_opener)
+        git_watch.username = "tester"
+        git_watch.token = "testToken123"
+        data = git_watch.get_subscriptions(1)
+        self.assertEqual(1, len(data))
+
 
 
 if __name__ == '__main__':
